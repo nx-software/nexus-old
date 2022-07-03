@@ -1,7 +1,8 @@
 /*
 3D Engine v0.0.1
 By:
-Chinmay Tiwari
+Chinmay 
+Lucas
 (add other contribuiters here)
 */
 #include <iostream>
@@ -23,6 +24,13 @@ const char *vertexShaderSource =
 "void main()\n"
 "{\n"
 "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"}\0";
+const char *fragShaderSource = 
+"#version 330 core\n"
+"out vec4 FragColor;\n"
+"void main()\n"
+"{\n"
+"    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
 "}\0";
 int main(){
 	std::cout<<"3D Engine\n";
@@ -58,12 +66,41 @@ int main(){
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
 	glCompileShader(vertexShader);
+	//frag shader
+	unsigned int fragmentShader;
+	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fragShaderSource, NULL);
+	glCompileShader(fragmentShader);
+	//shader program
+	unsigned int shaderProgram;
+	shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram,vertexShader);
+	glAttachShader(shaderProgram,fragmentShader);
+	glLinkProgram(shaderProgram);
+	glUseProgram(shaderProgram);
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+	//link vertex attribuites
+	glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(float),(void*)0);
+	glEnableVertexAttribArray(0);
+	//Generate VAO
+	unsigned int VAO;
+	glGenVertexArrays(1,&VAO);
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER,VBO);
+	glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
+	glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(float),(void*)0);
+	glEnableVertexAttribArray(0);
 	//main loop
 	while(!glfwWindowShouldClose(window)){
 		processInput(window);
 		//Renderr
-		glClearColor(0.2f,0.3f,0.3f,1.0f);
+		glClearColor(0.2f,0.3f,0.9f,1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
+		//draw triangle
+		glUseProgram(shaderProgram);
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES,0,3);
 		//glfwStuff
 		glfwSwapBuffers(window);
 		glfwPollEvents();
