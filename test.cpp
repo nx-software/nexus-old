@@ -1,24 +1,22 @@
-#include "mainengine.h"
+#include "headers/mainengine.h"
+#include <iostream>
+#include <fstream>
+#include <string>
 int main(){
     float vertices[] = {
-        -0.5f, -0.5f, 0.0f, // left  
-         0.5f, -0.5f, 0.0f, // right 
-         0.0f,  0.5f, 0.0f  // top   
-	}; 
-    const char *vertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-    "}\0";
-    const char *fragShaderSource = "#version 330 core\n"
-    "out vec4 FragColor;\n"
-    "void main()\n"
-    "{\n"
-    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-    "}\n\0";
+        // positions          // colors           // texture coords
+         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
+    };
+    unsigned int indices[] = {  
+        0, 1, 3, // first triangle
+        1, 2, 3  // second triangle
+    };
     std::list<object> objects;
-    object real(vertices,vertexShaderSource,fragShaderSource);
+    texture need("/bliss.jpg",0,0,0);
+    object real(vertices, "/root/AOPENGLENGINE/shaders/vshader.v","/root/AOPENGLENGINE/shaders/fshader.f",indices,need.data);
     objects.push_back(real);
-    mainLoop("Game Test",600,800,objects);
+    mainLoop("Nexus Engine Test v0.0.1",600,800,objects);
 }
