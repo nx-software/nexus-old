@@ -8,7 +8,7 @@ Chinmay Tiwari
 #include "glad/src/glad.c"
 #include "glad/include/glad/glad.h"
 //#include <GL/gl.h>
-#include <GLFW/glfw3.h>
+#include "./GLFW/glfw3.h"
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 //testing models and inputs
