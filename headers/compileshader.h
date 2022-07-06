@@ -1,4 +1,0 @@
-#ifndef COMPILESHADER_H
-#define COMPILESHADER_H
-
-#endif
