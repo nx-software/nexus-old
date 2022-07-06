@@ -33,11 +33,8 @@ void mainLoop(const char* name,int width,int height,std::list<object> objects){
 	}  
     glViewport(0,0,height,width);
     int i;
-    unsigned int VBO, VAO;//, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
     //glGenBuffers(1, &EBO);
-    glBindVertexArray(VAO);
+   
     unsigned int shaderProgram;
     shaderProgram = glCreateProgram();
     //texture
@@ -46,30 +43,23 @@ void mainLoop(const char* name,int width,int height,std::list<object> objects){
     glBindTexture(GL_TEXTURE_2D, texture);
     std::list<object>::iterator it = objects.begin();
     std::list<Shader> shaders;
+    unsigned int VBO, VAO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glBindVertexArray(VAO);
     for(i=0;i<objects.size();i++){
         std::cout<<"Loop"<<std::endl;
         object based = *it;
         Shader shadereal(based.vertexShaderPath, based.fragShaderPath);
         shaders.push_back(shadereal);
-        //link vertex attribuites
+
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(based.vertices), based.vertices, GL_STATIC_DRAW);
-        
-        // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(based.indices), based.indices, GL_STATIC_DRAW);
 
-
-
-        //pos
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
-        //colors
-        //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-        //glEnableVertexAttribArray(1);
-        //tex
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
-
         //texure
         // set the texture wrapping parameters
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
@@ -78,7 +68,6 @@ void mainLoop(const char* name,int width,int height,std::list<object> objects){
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         // load image, create texture and generate mipmaps
-  
         if (data)
         {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, basedwidth, basedheight, 0, GL_RGB, GL_UNSIGNED_BYTE, based.data);
@@ -89,7 +78,6 @@ void mainLoop(const char* name,int width,int height,std::list<object> objects){
         {
             std::cout << "Failed to load texture" << std::endl;
         }
-        
         advance(it, 1);
 
     }
@@ -98,19 +86,13 @@ void mainLoop(const char* name,int width,int height,std::list<object> objects){
     //trans = glm::rotate(trans, glm::radians(90.f),glm::vec3(0.0,0.0,1.0));
     //trans = glm::scale(trans,glm::vec3(0.5,0.5,0.5));
     //glm::mat4 trans = scale(0.5,0.5,0.5);
-    
-
     glm::mat4 view = glm::mat4(1.0f);
     view = glm::translate(view, glm::vec3(0.0f,0.0f,-0.3f));
-
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)height / (float)width, 0.1f, 100.0f);
-    
-
     glm::mat4 model;
     //model = rotate(-55.0f,1.0f,0.0f,0.0f);
-
     glEnable(GL_DEPTH_TEST);
-    std::cout<<"Started."<<std::endl;
+    std::cout<<"Started."<<" | SHADERS LOADED: " <<std::to_string(shaders.size()) <<std::endl;
     while(!glfwWindowShouldClose(window)){
             processInput(window);
             //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -120,15 +102,21 @@ void mainLoop(const char* name,int width,int height,std::list<object> objects){
             glBindTexture(GL_TEXTURE_2D, texture);
             int i;
             std::list<Shader>::iterator shadersit = shaders.begin();
+            std::list<object>::iterator it = objects.begin();
             view = glm::lookAt(cam.pos, cam.pos + cam.front, cam.up);
             glBindVertexArray(VAO);
             for(i = 0; i<shaders.size(); i++){
-                
                 glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-                //model = glm::translate(model, glm::vec3(0.0f,0.0f,0.0f));
-                //model = rotate((float)glfwGetTime(),0.0,1.0,1.0);
+                object thing = *it;
+                model = glm::translate(model, glm::vec3((float)thing.x,(float)thing.y,(float)thing.z));
+                if(i == 1){
+                model = rotate((float)glfwGetTime(),0.0,1.0,1.0);
+                }
                 Shader realshade = *shadersit;
                 realshade.setMat4("projection", projection);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, basedwidth, basedheight, 0, GL_RGB, GL_UNSIGNED_BYTE, thing.data);
+               // std::cout << "Texture Loaded." << std::endl;
+                glGenerateMipmap(GL_TEXTURE_2D);
                 //unsigned int transformLoc = glGetUniformLocation(realshade.ID,"transform");
                 //glUniformMatrix4fv(transformLoc,1,GL_FALSE,glm::value_ptr(trans));
                 int modelloc = glGetUniformLocation(realshade.ID,"model");
@@ -139,16 +127,9 @@ void mainLoop(const char* name,int width,int height,std::list<object> objects){
                 realshade.use();
                 glDrawArrays(GL_TRIANGLES, 0, 36);
                 advance(shadersit, 1);
-                
+                advance(it, 1);
             }
-            // render container
-            
-            
-            //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-            
-           
-            // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-            // -------------------------------------------------------------------------------
+            glDrawArrays(GL_TRIANGLES, 0, 36);
             glfwSwapBuffers(window);
             glfwPollEvents();
 	}
@@ -161,6 +142,7 @@ void mainLoop(const char* name,int width,int height,std::list<object> objects){
 }
 void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 	glViewport(0,0,width,height);
+    
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);  
 }
 void processInput(GLFWwindow *window){
